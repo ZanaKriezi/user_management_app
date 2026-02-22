@@ -1,18 +1,20 @@
 import { useEffect, useState } from "react";
 import { fetchUsers }  from "../services/api";
-import { Container, Typography, Grid, Card, CardContent, CardActionArea, CircularProgress, Menu} from "@mui/material";
+import { Container, Typography, Grid, Card, CardContent, CardActionArea, CircularProgress} from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { TextField }  from "@mui/material";
 import { Button, Box } from "@mui/material";
 import {Dialog, DialogTitle, DialogContent, DialogActions} from "@mui/material";
+import {FormControl, InputLabel, Select, MenuItem} from "@mui/material";
 
 function Home(){
     const [users, setUsers]=useState([]);
     const [loading, setLoading]=useState(true);
     const navigate=useNavigate();
     const [searchTerm, setSearchTerm]=useState("");
-    const [newUser, setNewUser]=useState({name: "", email: ""});
+    const [newUser, setNewUser]=useState({name: "", email: "", phone: "", company: {name: ""}});
     const [openAddDialog, setOpenAddDialog]=useState(false);
+    const [ sortBy, setSortBy]=useState("");
 
     const filteredUsers=users.filter(user =>
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -21,6 +23,12 @@ function Home(){
 
     const handleOpenAdd=() => setOpenAddDialog(true);
     const handleCloseAdd=() => setOpenAddDialog(false);
+
+    const sortedUsers=[...filteredUsers].sort((a, b) => {
+        if(sortBy === "name") return a.name.localeCompare(b.name);
+        if(sortBy === "email") return a.email.localeCompare(b.email);
+        return 0;
+    });
 
     useEffect(()=> {
         const loadUsers=async()=> {
@@ -80,7 +88,7 @@ function Home(){
                             margin="dense"
                             label="Company"
                             fullWidth
-                            value ={newUser.company?.name || ""}
+                            value ={newUser.company?.name || "Company Name"}
                             onChange={(e) => setNewUser({...newUser, company: {name: e.target.value}})}
                         />
                     </DialogContent>
@@ -121,8 +129,21 @@ function Home(){
                 onChange={(e) => setSearchTerm(e.target.value)}
             />
        
+             <FormControl sx={{ minWidth: 120, mb: 2 }}>
+              <InputLabel>Sort By</InputLabel>
+              <Select
+                value={sortBy}
+                label="Sort By"
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                <MenuItem value="">None</MenuItem>
+                <MenuItem value="name">Name</MenuItem>
+                <MenuItem value="email">Email</MenuItem>
+              </Select>
+            </FormControl>
+
             <Grid container spacing={3}>
-                {filteredUsers.map((user) => (
+                {sortedUsers.map((user) => (
                     <Grid item xs={12} sm={6} md={4} key={user.id}>
                         <Card>
                             <CardActionArea onClick={() => navigate(`/user/${user.id}`)}>
